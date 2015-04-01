@@ -77,6 +77,13 @@ function(req, res) {
 /************************************************************/
 // Write your authentication routes here
 /************************************************************/
+// ??? sign up
+
+
+
+// get login
+
+// post login
 
 
 
