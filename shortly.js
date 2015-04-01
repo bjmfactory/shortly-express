@@ -2,6 +2,7 @@ var express = require('express');
 var util = require('./lib/utility');
 var partials = require('express-partials');
 var bodyParser = require('body-parser');
+var session = require('express-session');
 
 
 var db = require('./app/config');
@@ -22,15 +23,37 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(__dirname + '/public'));
 
+app.use(session({
+  secret: 'keyboard cat',
+  resave: false,
+  saveUninitialized: true
+}));
+
+var validSession = false;
+
+function checkUser(req, res, next) {
+  if (validSession) {
+    console.log('valid session');
+    next();
+  } else {
+    console.log('not valid session');
+    req.session.error = 'Not Authenticated.';
+    res.redirect('/login');
+  }
+}
 
 app.get('/', 
 function(req, res) {
-  res.render('index');
+  checkUser(req, res, function(){
+    res.render('index');
+  })
 });
 
 app.get('/create', 
 function(req, res) {
-  res.render('index');
+  checkUser(req, res, function(){
+    res.render('index'); 
+  })
 });
 
 app.get('/links', 
@@ -40,9 +63,19 @@ function(req, res) {
   });
 });
 
+// app.get('/links', 
+// function(req, res) {
+//   checkUser(req, res, function(){
+//     Links.reset().fetch().then(function(links) {
+//       res.send(200, links.models);
+//     });
+//   });
+// });
+
 app.post('/links', 
 function(req, res) {
   var uri = req.body.url;
+  console.log("uri from /links POST", uri);
 
   if (!util.isValidUrl(uri)) {
     console.log('Not a valid url: ', uri);
@@ -77,11 +110,24 @@ function(req, res) {
 /************************************************************/
 // Write your authentication routes here
 /************************************************************/
-// ??? sign up
+// get sign up
+app.get('/signup', 
+function(req, res) {
+  res.render('signup');
+});
 
+app.post('/signup',
+  function(req,res){
+
+  });
 
 
 // get login
+
+app.get('/login', 
+function(req, res) {
+  res.render('login'); 
+});
 
 // post login
 
