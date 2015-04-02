@@ -3,7 +3,14 @@ var bcrypt = require('bcrypt-nodejs');
 var Promise = require('bluebird');
 
 var User = db.Model.extend({
-  tableName: 'users'
+  tableName: 'users',
+  // this is a bookshelf functionality
+  initialize: function(){
+    this.on('creating',function(model){
+      model.get('username','password')
+    });
+  }
+
 });
 
 module.exports = User;
