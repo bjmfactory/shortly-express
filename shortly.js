@@ -29,51 +29,25 @@ app.use(session({
   saveUninitialized: true
 }));
 
-var validSession = false;
-
-function checkUser(req, res, next) {
-  if (validSession) {
-    console.log('valid session');
-    next();
-  } else {
-    console.log('not valid session');
-    req.session.error = 'Not Authenticated.';
-    res.redirect('/login');
-  }
-}
-
-app.get('/', 
-function(req, res) {
-  checkUser(req, res, function(){
-    res.render('index');
-  })
+app.get('/', util.checkUser, function(req, res){
+  res.render('index');
 });
 
-app.get('/create', 
-function(req, res) {
-  checkUser(req, res, function(){
-    res.render('index'); 
-  })
+
+app.get('create', util.checkUser, function(req, res){
+  res.render('index');
 });
 
-app.get('/links', 
-function(req, res) {
-  Links.reset().fetch().then(function(links) {
+
+app.get('/links', function(req, res){
+  Links.reset().fetch().then(function(links){
     res.send(200, links.models);
   });
 });
 
-// app.get('/links', 
-// function(req, res) {
-//   checkUser(req, res, function(){
-//     Links.reset().fetch().then(function(links) {
-//       res.send(200, links.models);
-//     });
-//   });
-// });
-
 app.post('/links', 
 function(req, res) {
+
   var uri = req.body.url;
   console.log("uri from /links POST", uri);
 

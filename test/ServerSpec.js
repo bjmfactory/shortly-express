@@ -295,7 +295,7 @@ describe('', function() {
           'password': 'Phillip'
       }).save().then(function(){
         done()
-      });
+      })
     })
 
     it('Logs in existing users', function(done) {
