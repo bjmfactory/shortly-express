@@ -3,6 +3,7 @@ var util = require('./lib/utility');
 var partials = require('express-partials');
 var bodyParser = require('body-parser');
 var session = require('express-session');
+var bcrypt = require('bcrypt-nodejs');
 
 
 var db = require('./app/config');
@@ -91,13 +92,24 @@ app.post('/signup',
   function(req,res){
     var username = req.body.username;
     var password = req.body.password;
-    var user = new User({
-      username:username,
-      password:password
-    });
-    user.save().then(
-      app.get('/links')
-    );
+    
+    new User({username: username})
+      .fetch()
+      .then(function(user) {
+        if (!user) {
+          bcrypt.hash(password, null, null, function(err, hash){
+            Users.create({
+              username: username,
+              password: hash
+            }).then(function(user) {
+                util.createSession(req, res, user);
+            });
+          });
+        } else {
+          console.log('Account already exists');
+          res.redirect('/signup')
+        }
+      });
   });
 
 
@@ -114,16 +126,18 @@ app.post('/login',
     var username = req.body.username;
     var password = req.body.password;
     
-    new User({'username' : username, 'password' : password})
-      .fetch()
-      .then(function(user) {
-        if (user){
-          req.session.userId = user.get('id');
-          res.redirect('/links')
-        } else {
-          res.render('login')
+    new User({'username' : username}).fetch().then(function(user) {
+      if (!user){
+        return res.redirect('/login');
+      }
+      bcrypt.compare(password,user.get('password'),function(err,match){
+        if(match){
+          util.createSession(req,res,user);
+        } else{
+          res.redirect('/login');
         }
-      })
+      });
+    });
   });
 
 
