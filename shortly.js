@@ -39,7 +39,7 @@ app.get('create', util.checkUser, function(req, res){
 });
 
 
-app.get('/links', function(req, res){
+app.get('/links', util.checkUser, function(req, res){
   Links.reset().fetch().then(function(links){
     res.send(200, links.models);
   });
@@ -49,10 +49,8 @@ app.post('/links',
 function(req, res) {
 
   var uri = req.body.url;
-  console.log("uri from /links POST", uri);
 
   if (!util.isValidUrl(uri)) {
-    console.log('Not a valid url: ', uri);
     return res.send(404);
   }
 
@@ -62,7 +60,6 @@ function(req, res) {
     } else {
       util.getUrlTitle(uri, function(err, title) {
         if (err) {
-          console.log('Error reading URL heading: ', err);
           return res.send(404);
         }
 
@@ -92,7 +89,15 @@ function(req, res) {
 
 app.post('/signup',
   function(req,res){
-
+    var username = req.body.username;
+    var password = req.body.password;
+    var user = new User({
+      username:username,
+      password:password
+    });
+    user.save().then(
+      app.get('/links')
+    );
   });
 
 
@@ -104,6 +109,22 @@ function(req, res) {
 });
 
 // post login
+app.post('/login',
+  function(req,res){
+    var username = req.body.username;
+    var password = req.body.password;
+    
+    new User({'username' : username, 'password' : password})
+      .fetch()
+      .then(function(user) {
+        if (user){
+          req.session.userId = user.get('id');
+          res.redirect('/links')
+        } else {
+          res.render('login')
+        }
+      })
+  });
 
 
 

@@ -7,7 +7,8 @@ var User = db.Model.extend({
   // this is a bookshelf functionality
   initialize: function(){
     this.on('creating',function(model){
-      model.get('username','password')
+      model.set('username', model.attributes.username)
+      model.set('password', model.attributes.password)
     });
   }
 
